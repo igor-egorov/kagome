@@ -162,6 +162,9 @@ namespace kagome::injector {
       return initialized.value();
     }
 
+    auto app_state_manager =
+        injector.template create<sptr<application::AppStateManager>>();
+
     auto context = injector.template create<sptr<api::RpcContext>>();
 
     api::HttpListenerImpl::Configuration listener_config;
@@ -171,7 +174,7 @@ namespace kagome::injector {
         injector.template create<api::HttpSession::Configuration>();
 
     initialized = std::make_shared<api::HttpListenerImpl>(
-        context, listener_config, http_session_config);
+        app_state_manager, context, listener_config, http_session_config);
     return initialized.value();
   };
 
@@ -185,6 +188,9 @@ namespace kagome::injector {
       return initialized.value();
     }
 
+    auto app_state_manager =
+        injector.template create<sptr<application::AppStateManager>>();
+
     auto context = injector.template create<sptr<api::RpcContext>>();
 
     api::WsListenerImpl::Configuration listener_config;
@@ -194,7 +200,7 @@ namespace kagome::injector {
         injector.template create<api::WsSession::Configuration>();
 
     initialized = std::make_shared<api::WsListenerImpl>(
-        context, listener_config, ws_session_config);
+        app_state_manager, context, listener_config, ws_session_config);
     return initialized.value();
   };
 
@@ -448,21 +454,24 @@ namespace kagome::injector {
         injector.template create<sptr<blockchain::BlockHeaderRepository>>();
 
     auto res = std::make_shared<network::SyncClientsSet>();
-    auto current_peer_synchronizer =
-        injector.template create<sptr<consensus::Synchronizer>>();
-    res->clients.insert(current_peer_synchronizer);
 
     auto current_peer_info = injector.template create<libp2p::peer::PeerInfo>();
     for (const auto &peer_info : peer_infos) {
+      spdlog::debug("Added peer with id: {}", peer_info.id.toBase58());
       if (peer_info.id != current_peer_info.id) {
-        res->clients.insert(std::make_shared<consensus::SynchronizerImpl>(
+        res->clients.push_back(std::make_shared<consensus::SynchronizerImpl>(
             *host,
             peer_info,
             block_tree,
             block_header_repository,
             injector.template create<consensus::SynchronizerConfig>()));
+      } else {
+        auto current_peer_synchronizer =
+            injector.template create<sptr<consensus::Synchronizer>>();
+        res->clients.push_back(current_peer_synchronizer);
       }
     }
+    std::reverse(res->clients.begin(), res->clients.end());
     initialized = res;
     return res;
   };
@@ -482,7 +491,9 @@ namespace kagome::injector {
       common::raise(configuration_res.error());
     }
     auto config = configuration_res.value();
-    config.leadership_rate = {1, 2};
+    for (const auto &authority : config.genesis_authorities) {
+      spdlog::debug("Babe authority: {}", authority.id.id.toHex());
+    }
     initialized = std::make_shared<primitives::BabeConfiguration>(config);
     return *initialized;
   };
