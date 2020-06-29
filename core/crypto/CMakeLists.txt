@@ -73,6 +73,33 @@ target_link_libraries(ed25519_provider
     )
 kagome_install(ed25519_provider)
 
+add_library(secp256k1_provider
+    secp256k1/secp256k1_provider_impl.cpp
+    )
+target_link_libraries(secp256k1_provider PUBLIC
+    OpenSSL::Crypto
+    PUBLIC OpenSSL::SSL
+    blob
+    buffer
+    secp256k1::secp256k1
+    scale
+    )
+kagome_install(
+    secp256k1_provider
+)
+
+add_library(pbkdf2_provider
+    pbkdf2/impl/pbkdf2_provider_impl.cpp
+    )
+target_link_libraries(pbkdf2_provider
+    PUBLIC OpenSSL::SSL
+    OpenSSL::Crypto
+    buffer
+    blob
+    )
+kagome_install(pbkdf2_provider)
+
+add_subdirectory(bip39)
 add_subdirectory(blake2)
 add_subdirectory(keccak)
 add_subdirectory(sha)
