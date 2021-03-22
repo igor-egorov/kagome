@@ -66,3 +66,7 @@ find_package(libp2p CONFIG REQUIRED)
 # https://github.com/soramitsu/soramitsu-libsecp256k1
 hunter_add_package(libsecp256k1)
 find_package(libsecp256k1 CONFIG REQUIRED)
+
+hunter_add_package(c-ares)
+find_package(c-ares CONFIG REQUIRED)
+
