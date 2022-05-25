@@ -74,7 +74,7 @@ namespace kagome::api {
 
     // if prev_key is bigger than prefix, then set cursor to the next key after
     // prev_key
-    if (prev_key > prefix) {
+    if (prefix.buf() < prev_key.buf()) {
       OUTCOME_TRY(cursor->seekUpperBound(prev_key));
     }
     // otherwise set cursor to key that is next to or equal to prefix

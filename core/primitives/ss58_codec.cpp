@@ -71,7 +71,7 @@ namespace kagome::primitives {
     ss58_bytes.reserve(kSs58Length);
     ss58_bytes.putUint8(account_type).put(id);
     auto checksum = calculateChecksum(ss58_bytes, hasher);
-    ss58_bytes.put(checksum);
+    ss58_bytes.put((common::BufferView)checksum);
 
     return libp2p::multi::detail::encodeBase58(ss58_bytes.asVector());
   }

@@ -86,11 +86,11 @@ namespace kagome::host_api {
         common::BufferView data = data_opt.value().get();
         data = data.subspan(std::min<size_t>(offset, data.size()));
         auto written = std::min<size_t>(data.size(), value.size);
-        memory.storeBuffer(value.ptr, data.subspan(0, written));
+        memory.storeBuffer(value.ptr, data.subspan(0, written).buf());
         res = data.size();
 
-        SL_TRACE_FUNC_CALL(
-            logger_, data, key, common::Buffer{data.subspan(0, written)});
+//        SL_TRACE_FUNC_CALL(
+//            logger_, data, key, common::Buffer{data.subspan(0, written)});
       } else {
         SL_TRACE_FUNC_CALL(
             logger_, std::string_view{"none"}, key, value_out, offset);

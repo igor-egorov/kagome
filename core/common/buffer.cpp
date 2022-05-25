@@ -78,6 +78,10 @@ namespace kagome::common {
 
   Buffer::Buffer(std::vector<uint8_t> v) : data_(std::move(v)) {}
   Buffer::Buffer(gsl::span<const uint8_t> s) : data_(s.begin(), s.end()) {}
+  Buffer::Buffer(BufferView bv)  {
+    data_.resize(bv.size());
+    memcpy(data_.data(), bv.data(), bv.size());
+  }
 
   const std::vector<uint8_t> &Buffer::asVector() const {
     return data_;
@@ -90,6 +94,11 @@ namespace kagome::common {
   bool Buffer::operator==(const Buffer &b) const noexcept {
     return data_ == b.data_;
   }
+
+  bool Buffer::operator==(const BufferView &b) const noexcept {
+    return b == *this;
+  }
+
 
   Buffer::const_iterator Buffer::begin() const {
     return data_.begin();
@@ -138,6 +147,10 @@ namespace kagome::common {
 
   Buffer &Buffer::put(const std::vector<uint8_t> &v) {
     return putRange(v.begin(), v.end());
+  }
+
+  Buffer &Buffer::put(BufferView bv) {
+    return putRange(bv.begin(), bv.end());
   }
 
   Buffer &Buffer::put(gsl::span<const uint8_t> s) {
@@ -198,7 +211,7 @@ namespace kagome::common {
   }
 
   std::string BufferView::toHex() const {
-    return hex_lower(*this);
+    return hex_lower(data_);
   }
 
 }  // namespace kagome::common

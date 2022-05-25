@@ -66,7 +66,7 @@ namespace kagome::storage::changes_trie {
 
   void StorageChangesTrackerImpl::onClearPrefix(
       const common::BufferView &prefix) {
-    for (auto it = actual_val_.lower_bound(prefix);
+    for (auto it = actual_val_.lower_bound(prefix.buf());
          it != actual_val_.end()
          && prefix.size() <= static_cast<ssize_t>(it->first.size())
          && it->first.view(0, prefix.size()) == prefix;
@@ -80,9 +80,10 @@ namespace kagome::storage::changes_trie {
       const common::BufferView &key,
       const common::BufferView &value,
       bool is_new_entry) {
-    auto change_it = extrinsics_changes_.find(key);
+    auto change_it = extrinsics_changes_.find(key.buf());
     OUTCOME_TRY(idx,
-                scale::decode<primitives::ExtrinsicIndex>(extrinsic_index));
+                scale::decode<primitives::ExtrinsicIndex>(
+                    extrinsic_index.buf()));
 
     // if key was already changed in the same block, just add extrinsic to
     // the changers list
@@ -100,20 +101,20 @@ namespace kagome::storage::changes_trie {
 
   outcome::result<void> StorageChangesTrackerImpl::onRemove(
       common::BufferView extrinsic_index, const common::BufferView &key) {
-    if (auto it = actual_val_.find(key); it != actual_val_.end()) {
+    if (auto it = actual_val_.find(key.buf()); it != actual_val_.end()) {
       it->second.clear();
     }
 
-    auto change_it = extrinsics_changes_.find(key);
+    auto change_it = extrinsics_changes_.find(key.buf());
     OUTCOME_TRY(idx,
-                scale::decode<primitives::ExtrinsicIndex>(extrinsic_index));
+                scale::decode<primitives::ExtrinsicIndex>(extrinsic_index.buf()));
 
     // if key was already changed in the same block, just add extrinsic to
     // the changers list
     if (change_it != extrinsics_changes_.end()) {
       // if new entry, i.e. it doesn't exist in the persistent storage, then
       // don't track it, because it's just temporary
-      if (auto i = new_entries_.find(key); i != new_entries_.end()) {
+      if (auto i = new_entries_.find(key.buf()); i != new_entries_.end()) {
         extrinsics_changes_.erase(change_it);
         new_entries_.erase(i);
       } else {

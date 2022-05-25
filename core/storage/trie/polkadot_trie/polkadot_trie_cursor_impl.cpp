@@ -361,7 +361,7 @@ namespace kagome::storage::trie {
                 std::back_inserter<Buffer>(key_nibbles));
       key_nibbles.putUint8(idx);
     }
-    key_nibbles.put(search_state.getCurrent().key_nibbles);
+    key_nibbles.put((common::BufferView)search_state.getCurrent().key_nibbles);
     return key_nibbles.toByteBuffer();
   }
 

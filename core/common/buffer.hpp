@@ -51,6 +51,7 @@ namespace kagome::common {
      */
     explicit Buffer(std::vector<uint8_t> v);
     explicit Buffer(gsl::span<const uint8_t> s);
+    explicit Buffer(BufferView bv);
 
     Buffer(const uint8_t *begin, const uint8_t *end);
 
@@ -81,6 +82,8 @@ namespace kagome::common {
      * @brief Lexicographical comparison of two buffers
      */
     bool operator==(const Buffer &b) const noexcept;
+
+    bool operator==(const BufferView &b) const noexcept;
 
     /**
      * @brief Lexicographical comparison of buffer and vector of bytes
@@ -159,6 +162,8 @@ namespace kagome::common {
      * @return this buffer, suitable for chaining.
      */
     Buffer &put(const std::vector<uint8_t> &v);
+
+    Buffer &put(BufferView bv);
 
     /**
      * @brief Put a sequence of bytes into byte buffer
@@ -264,18 +269,22 @@ namespace kagome::common {
   using BufferMutRef = std::reference_wrapper<Buffer>;
   using BufferConstRef = std::reference_wrapper<const Buffer>;
 
-  class BufferView : public gsl::span<const uint8_t>,
-                     public boost::equality_comparable<Buffer>,
-                     public boost::less_than_comparable<Buffer> {
+  class BufferView :  // public gsl::span<const uint8_t>,
+                      public boost::equality_comparable<Buffer>,
+                      public boost::less_than_comparable<Buffer> {
    public:
     BufferView() = default;
 
-    BufferView(const Buffer &buf) noexcept
-        : gsl::span<const uint8_t>{buf.data(),
-                                   static_cast<index_type>(buf.size())} {}
+    BufferView(const Buffer &buf) noexcept : data_(buf) {}
 
-    BufferView(gsl::span<const uint8_t> span) noexcept
-        : gsl::span<const uint8_t>{span} {}
+    BufferView(gsl::span<const uint8_t> span) noexcept : data_(span) {}
+
+    //    BufferView(const Buffer &buf) noexcept
+    //        : gsl::span<const uint8_t>{buf.data(),
+    //                                   static_cast<index_type>(buf.size())} {}
+    //
+    //    BufferView(gsl::span<const uint8_t> span) noexcept
+    //        : gsl::span<const uint8_t>{span} {}
 
     std::string toHex() const;
 
@@ -287,13 +296,75 @@ namespace kagome::common {
     BufferView &operator=(Buffer &&buf) = delete;
 
     bool operator==(const common::Buffer &buf) const noexcept {
-      return std::equal(begin(), end(), buf.begin(), buf.end());
+      return std::equal(data_.begin(), data_.end(), buf.begin(), buf.end());
+    }
+
+    bool operator==(const common::BufferView &buf) const noexcept {
+      return std::equal(
+          data_.begin(), data_.end(), buf.data_.begin(), buf.data_.end());
     }
 
     bool operator<(const common::Buffer &buf) const noexcept {
       return std::lexicographical_compare(
-          begin(), end(), buf.begin(), buf.end());
+          data_.begin(), data_.end(), buf.begin(), buf.end());
     }
+
+    bool operator>(const common::Buffer &buf) const noexcept {
+      auto &l = *this;
+      auto r = BufferView(buf);
+      return r.operator<(l.data_);
+    }
+
+    const uint8_t *data() const {
+      return data_.data();
+    }
+
+    ssize_t size() const {
+      return data_.size();
+    }
+
+    bool empty() const {
+      return data_.empty();
+    }
+
+    uint8_t &operator[](int idx) {
+      return data_[idx];
+    }
+
+    uint8_t operator[](int idx) const {
+      return data_[idx];
+    }
+
+    BufferView subspan(size_t offset = 0, size_t length = -1) const {
+      return gsl::make_span(data_).subspan(offset, length);
+    }
+
+    auto begin() {
+      return data_.begin();
+    }
+
+    auto end() {
+      return data_.end();
+    }
+
+    auto begin() const {
+      return data_.begin();
+    }
+
+    auto end() const {
+      return data_.end();
+    }
+
+    Buffer buf() const {
+      return data_;
+    }
+
+    Buffer &buf() {
+      return data_;
+    }
+
+   private:
+    Buffer data_;
   };
 
   std::ostream &operator<<(std::ostream &os, const Buffer &buffer);
@@ -320,8 +391,8 @@ namespace kagome::common {
     inline Buffer operator""_hex2buf(const char *c, size_t s) {
       /// TODO(GaroRobe): After migrating to C++20 enable static_assert
       /// using literal operator template (see
-      /// fe599c601d490b2d73c172a32c9ed1d6d58c8f78) static_assert(is_hex_str(c),
-      /// "Expected hex string");
+      /// fe599c601d490b2d73c172a32c9ed1d6d58c8f78)
+      /// static_assert(is_hex_str(c), "Expected hex string");
       return Buffer::fromHex({c, s}).value();
     }
   }  // namespace literals

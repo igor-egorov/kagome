@@ -104,7 +104,7 @@ namespace kagome::storage::trie {
   PersistentTrieBatchImpl::clearPrefix(const BufferView &prefix,
                                        std::optional<uint64_t> limit) {
     if (changes_.has_value()) changes_.value()->onClearPrefix(prefix);
-    SL_TRACE_VOID_FUNC_CALL(logger_, prefix);
+//    SL_TRACE_VOID_FUNC_CALL(logger_, prefix);
     OUTCOME_TRY(ext_idx, getExtrinsicIndex());
     return trie_->clearPrefix(
         prefix, limit, [&](const auto &key, auto &&) -> outcome::result<void> {
@@ -122,7 +122,7 @@ namespace kagome::storage::trie {
     auto res = trie_->put(key, value);
     if (res and changes_.has_value()) {
       OUTCOME_TRY(ext_idx, getExtrinsicIndex());
-      SL_TRACE_VOID_FUNC_CALL(logger_, key, value);
+//      SL_TRACE_VOID_FUNC_CALL(logger_, key, value);
       OUTCOME_TRY(
           changes_.value()->onPut(ext_idx.get(), key, value, is_new_entry));
     }
@@ -138,7 +138,7 @@ namespace kagome::storage::trie {
   outcome::result<void> PersistentTrieBatchImpl::remove(const BufferView &key) {
     auto res = trie_->remove(key);
     if (res and changes_.has_value()) {
-      SL_TRACE_VOID_FUNC_CALL(logger_, key);
+//      SL_TRACE_VOID_FUNC_CALL(logger_, key);
       OUTCOME_TRY(ext_idx, getExtrinsicIndex());
       OUTCOME_TRY(changes_.value()->onRemove(ext_idx.get(), key));
     }

@@ -172,7 +172,7 @@ namespace kagome::api {
     jsonrpc::Value::Struct result;
     result["changes"] =
         jsonrpc::Value::Array{jsonrpc::Value{jsonrpc::Value::Array{
-            api::makeValue(key), api::makeValue(hex_lower_0x(value))}}};
+            api::makeValue(key), api::makeValue(hex_lower_0x(value.buf()))}}};
     result["block"] = api::makeValue(hex_lower_0x(block));
 
     return result;

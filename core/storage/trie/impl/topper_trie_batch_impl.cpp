@@ -37,7 +37,7 @@ namespace kagome::storage::trie {
 
   outcome::result<std::optional<common::BufferConstRef>>
   TopperTrieBatchImpl::tryGet(const BufferView &key) const {
-    if (auto it = cache_.find(key); it != cache_.end()) {
+    if (auto it = cache_.find(key.buf()); it != cache_.end()) {
       if (it->second.has_value()) {
         return it->second.value();
       }
@@ -61,7 +61,7 @@ namespace kagome::storage::trie {
 
   outcome::result<bool> TopperTrieBatchImpl::contains(
       const BufferView &key) const {
-    if (auto it = cache_.find(key); it != cache_.end()) {
+    if (auto it = cache_.find(key.buf()); it != cache_.end()) {
       return it->second.has_value();
     }
     if (wasClearedByPrefix(key)) {
@@ -107,7 +107,7 @@ namespace kagome::storage::trie {
 
   outcome::result<std::tuple<bool, uint32_t>> TopperTrieBatchImpl::clearPrefix(
       const BufferView &prefix, std::optional<uint64_t>) {
-    for (auto it = cache_.lower_bound(prefix);
+    for (auto it = cache_.lower_bound(prefix.buf());
          it != cache_.end() && it->first.subbuffer(0, prefix.size()) == prefix;
          ++it)
       it->second = std::nullopt;
