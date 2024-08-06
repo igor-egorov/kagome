@@ -86,3 +86,12 @@ hunter_config(
     CMAKE_ARGS
         SECP256K1_ENABLE_MODULE_RECOVERY=ON
 )
+
+hunter_config(
+  libp2p
+  URL https://github.com/igor-egorov/cpp-libp2p/archive/refs/heads/try/multiaddress-with-mutex.zip
+  SHA1 52e5e6ec47416de838628fadbd24115d8438a408
+  CMAKE_ARGS 
+    CMAKE_BUILD_TYPE=Debug
+  KEEP_PACKAGE_SOURCES
+)
