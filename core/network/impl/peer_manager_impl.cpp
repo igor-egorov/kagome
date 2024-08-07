@@ -10,6 +10,9 @@
 #include <limits>
 #include <memory>
 
+#include <iostream>
+#include <thread>
+
 #include <libp2p/protocol/kademlia/impl/peer_routing_table.hpp>
 #include <libp2p/protocol/ping.hpp>
 
@@ -306,6 +309,7 @@ namespace kagome::network {
 
   void PeerManagerImpl::align() {
     SL_TRACE(log_, "Try to align peers number");
+    std::cout << "align " << std::this_thread::get_id() << std::endl;
 
     const auto hard_limit = app_config_.inPeers() + app_config_.inPeersLight()
                           + app_config_.outPeers();
