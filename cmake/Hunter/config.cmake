@@ -90,7 +90,7 @@ hunter_config(
 hunter_config(
   libp2p
   URL https://github.com/igor-egorov/cpp-libp2p/archive/refs/heads/try/multiaddress-with-mutex.zip
-  SHA1 d1080edc2ab242bc8464b86a52bdff7ed054c54a
+  SHA1 6f20f5df625b5d22efff1deacff7007a27a8a46b
   CMAKE_ARGS 
     CMAKE_BUILD_TYPE=Debug
   KEEP_PACKAGE_SOURCES
